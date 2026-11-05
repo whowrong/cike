@@ -118,12 +118,12 @@ CIKE 是基于 Electron、Chromium 和 Playwright 的本地多环境浏览器。
 
 ### Windows x64
 
-当前 Windows 目标为 x64。本分支的 Windows 发布工作流需要手动运行；成功后才会在 [whowrong/cike Releases](https://github.com/whowrong/cike/releases) 发布安装文件。若该页面显示没有 release，就表示现在还没有可下载的 Windows 安装包；不要改从上游 macOS 发布页下载。
+当前 Windows 目标为 x64。要下载已打包程序，打开 [whowrong/cike Releases](https://github.com/whowrong/cike/releases)，进入最新版本的 **Assets**，选 `CIKE-Setup-<版本号>-x64.exe`（安装版）或 `CIKE-<版本号>-win-x64.zip`（免安装版）。GitHub 页面上的「Source code (zip/tar.gz)」是源代码，不是可直接运行的安装包。若 Releases 尚无 Windows 资产，就暂时没有现成安装包可下载；可按下方「Windows x64：源码运行与打包」用 Node.js 22+ 在 Windows 本机打包，或等维护者发布。不要从上游 macOS 发布页下载。
 
-要生成发布包：在仓库打开 **Actions → Build and Release Windows x64 → Run workflow**，选择 `windows-x64-support` 分支，版本号可用默认 `0.5.15`，再运行工作流。成功后从 Releases 下载：
+有仓库写入权限且 Actions 中列出该工作流时，可打开 [Windows 发布工作流文件](https://github.com/whowrong/cike/blob/windows-x64-support/.github/workflows/release-win.yml)，然后在仓库的 **Actions → Build and Release Windows x64 → Run workflow** 选择 `windows-x64-support` 分支，版本号可用默认 `0.5.15` 并运行。工作流成功后会创建 GitHub Release；再回到上面的 Releases 页面，从该版本的 Assets 下载：
 
 - `CIKE-Setup-<版本号>-x64.exe`：推荐，向导式安装；可以选择安装目录，默认按当前用户安装，并创建开始菜单/桌面快捷方式。
-- `CIKE-<版本号>-win-x64.zip`：免安装包；解压后运行 `CIKE.exe`。
+- `CIKE-<版本号>-win-x64.zip`：免安装包；解压后进入 `CIKE-win32-x64` 文件夹，再运行其中的 `CIKE.exe`。
 - `SHA256SUMS.txt`：对应文件的 SHA-256 校验值。以实际发布资产中的版本号为准。
 
 例如版本为 `0.5.15` 时，可在 PowerShell 检查安装包散列：
@@ -146,12 +146,12 @@ Get-FileHash .\CIKE-Setup-0.5.15-x64.exe -Algorithm SHA256
 
 ### 首次配置与创建环境
 
-1. 在「代理管理」点「添加代理」。可逐行导入，每行一个代理，支持 `host:port`、`host:port:用户名:密码` 或 `socks5://用户名:密码@host:port`；可在行尾用 `{备注}` 命名，然后检测代理。
+1. 代理不是必填项：直连使用时跳过这一步。需要代理时，在「代理管理」点「添加代理」，逐行导入（每行一个），支持 `host:port`、`host:port:用户名:密码` 或 `socks5://用户名:密码@host:port`；可在行尾用 `{备注}` 命名，然后检测代理。
 2. 打开「新建环境」。Windows 版默认选择 Windows；设置分组、分辨率，需要代理时选择刚添加并检测通过的代理。
 3. 语言和时区默认跟随已检测代理；也可在表单里手动选。CPU 核数、内存、Canvas 噪声、WebRTC 和随机种子均可按需要调整，留空/默认即可采用程序默认值。
 4. 点「创建并打开」。之后在「环境管理」中可打开已保存的环境；每个环境保留自己的登录状态和浏览数据。
 
-不使用代理也能创建环境。代理检测失败时，语言和时区可能无法自动跟随代理；请核对代理设置，或手动选择语言及时区。
+不使用代理也能创建环境。创建并打开后，可像普通 Chromium 浏览器一样在地址栏访问网站并登录；以后从「环境管理」重新打开同一环境，会保留该环境的 Cookie 和浏览数据。代理检测失败时，语言和时区可能无法自动跟随代理；请核对代理设置，或手动选择语言及时区。
 
 ### 更新、卸载和数据
 
