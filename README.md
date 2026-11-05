@@ -118,14 +118,48 @@ CIKE 是基于 Electron、Chromium 和 Playwright 的本地多环境浏览器。
 
 ### Windows x64
 
-此分支提供 Windows x64 构建配置。Windows 发布工作流需要在 GitHub Actions 中手动触发；只有工作流成功发布并附上相应文件后，发布页才会有 Windows 安装包。
+当前 Windows 目标为 x64。本分支的 Windows 发布工作流需要手动运行；成功后才会在 [whowrong/cike Releases](https://github.com/whowrong/cike/releases) 发布安装文件。若该页面显示没有 release，就表示现在还没有可下载的 Windows 安装包；不要改从上游 macOS 发布页下载。
 
-- [whowrong/cike 发布页](https://github.com/whowrong/cike/releases)：若该版本已附 Windows 资产，可下载 `CIKE-Setup-<版本号>-x64.exe`（向导安装）或 `CIKE-<版本号>-win-x64.zip`（免安装目录）。
-- 安装包默认按当前用户安装，可选择安装目录；会创建开始菜单和桌面快捷方式。卸载不会删除 CIKE 用户数据。
-- ZIP 版解压后运行 `CIKE.exe`。首次运行时在「设置」下载 Chromium 内核；这一步需要网络连接。
-- 发布包未做代码签名，Windows 可能显示 SmartScreen 提示。先从可信发布页下载并核对 `SHA256SUMS.txt`，确认文件可信后再选择「更多信息 → 仍要运行」；不要为此关闭系统安全检查。
-- 项目未在代码或发布工作流中声明最低 Windows 版本；当前构建目标为 Windows x64，不据此承诺特定最低版本。
+要生成发布包：在仓库打开 **Actions → Build and Release Windows x64 → Run workflow**，选择 `windows-x64-support` 分支，版本号可用默认 `0.5.15`，再运行工作流。成功后从 Releases 下载：
 
+- `CIKE-Setup-<版本号>-x64.exe`：推荐，向导式安装；可以选择安装目录，默认按当前用户安装，并创建开始菜单/桌面快捷方式。
+- `CIKE-<版本号>-win-x64.zip`：免安装包；解压后运行 `CIKE.exe`。
+- `SHA256SUMS.txt`：对应文件的 SHA-256 校验值。以实际发布资产中的版本号为准。
+
+例如版本为 `0.5.15` 时，可在 PowerShell 检查安装包散列：
+
+```powershell
+Get-FileHash .\CIKE-Setup-0.5.15-x64.exe -Algorithm SHA256
+```
+
+将输出的 `Hash` 与发布页 `SHA256SUMS.txt` 中同名文件的值比对。安装包未做代码签名；Windows 可能显示 SmartScreen 提示。仅在确认下载来源和校验值后，才按 Windows 提示选择「更多信息 → 仍要运行」。
+
+## Windows x64：安装、配置与使用
+
+### 安装并启动
+
+- 安装版：双击 `CIKE-Setup-<版本号>-x64.exe`，按向导选择目录并完成安装，再从开始菜单或桌面快捷方式启动。
+- 免安装版：把 `CIKE-<版本号>-win-x64.zip` 解压到一个可写位置，打开压缩包内的 `CIKE-win32-x64` 文件夹并双击 `CIKE.exe`。更新时先退出 CIKE，用新版 ZIP 中的 `CIKE-win32-x64` 文件夹替换旧文件夹，再从新文件夹启动 `CIKE.exe`。
+- 第一次打开前确保能访问网络；在应用的「设置 → 浏览器内核」点「下载 Chromium」。内核约 170 MB，只需下载一次。
+
+安装程序按当前用户安装；Windows 卸载不会删除环境和浏览器数据。项目没有声明最低 Windows 版本，当前构建目标是 Windows x64。
+
+### 首次配置与创建环境
+
+1. 在「代理管理」点「添加代理」。可逐行导入，每行一个代理，支持 `host:port`、`host:port:用户名:密码` 或 `socks5://用户名:密码@host:port`；可在行尾用 `{备注}` 命名，然后检测代理。
+2. 打开「新建环境」。Windows 版默认选择 Windows；设置分组、分辨率，需要代理时选择刚添加并检测通过的代理。
+3. 语言和时区默认跟随已检测代理；也可在表单里手动选。CPU 核数、内存、Canvas 噪声、WebRTC 和随机种子均可按需要调整，留空/默认即可采用程序默认值。
+4. 点「创建并打开」。之后在「环境管理」中可打开已保存的环境；每个环境保留自己的登录状态和浏览数据。
+
+不使用代理也能创建环境。代理检测失败时，语言和时区可能无法自动跟随代理；请核对代理设置，或手动选择语言及时区。
+
+### 更新、卸载和数据
+
+Windows 版应用内「检查更新」会打开发布页，不会自动替换程序；当前更新器指向上游 `chainfix/cike`。使用本 fork 的版本时，请从 [whowrong/cike Releases](https://github.com/whowrong/cike/releases) 取得新版：安装版先退出 CIKE，再运行新版安装程序并选择原安装目录；免安装版则用 ZIP 内的 `CIKE-win32-x64` 文件夹替换旧文件夹。若发布页还没有对应 Windows 资产，就暂时没有可用的 fork 更新包。
+
+默认数据目录为 `%USERPROFILE%\.local-fingerprint-browser`，也可在「设置」里点数据目录旁的「打开」。卸载应用会保留此目录；若要连同环境、代理和浏览数据一起清除，先备份需要保留的内容，再手动删除该目录。
+
+源码运行或打包需要 Windows x64 和 Node.js 22 或以上版本；这不是已打包应用的安装要求。PowerShell 命令、构建输出和工作流文件见下文。
 ## 安装与首次打开
 
 1. 下载并打开 DMG，将 **CIKE** 拖入「应用程序」。
@@ -235,38 +269,29 @@ npm start
 npm run smoke
 ```
 
-## Windows x64：运行、更新与打包
+## Windows x64：源码运行与打包
 
-### 从源码运行或打包
-
-需要 Windows x64 和 Node.js 22 或以上版本（这是源码构建要求，不是已打包应用的额外安装要求）。在 PowerShell 中进入项目目录后运行：
+先安装 Node.js 22 或以上版本（x64），然后在 PowerShell 中运行：
 
 ```powershell
+git clone --branch windows-x64-support https://github.com/whowrong/cike.git
+cd cike
 npm ci
 npm run electron       # 启动桌面应用
 npm run smoke          # 运行 smoke 测试
 ```
 
-首次使用浏览器环境前，在应用「设置」页下载 Chromium。下载需要网络；Windows x64 使用 Playwright 对应的 Chrome for Testing 内核。解压时程序依次尝试 `tar.exe`、`tar`、`unzip` 和 PowerShell `Expand-Archive`。
+首次打开环境前，在「设置 → 浏览器内核」下载 Chromium。若只想运行应用，不需要安装 Node.js；请按上面的安装说明下载已发布的 `.exe` 或 ZIP。
 
-打包脚本：
+本地打包命令：
 
 ```powershell
-npm run pack:win-x64   # 目录包：dist\CIKE-win32-x64\CIKE.exe
-npm run dist:win       # NSIS 安装程序：dist-installer\CIKE-Setup-<package.json版本>-x64.exe
+npm run pack:win-x64   # 解包目录：dist\CIKE-win32-x64\CIKE.exe
+npm run dist:win       # 安装程序：dist-installer\CIKE-Setup-<package.json版本>-x64.exe
 npm run dist:win:dir   # NSIS 解包目录：dist-installer\win-unpacked\
 ```
 
-安装程序使用向导，可更改安装目录，默认按当前用户安装；会创建开始菜单和桌面快捷方式。卸载会保留用户数据目录。安装包和免安装包都未签名。项目没有声明最低 Windows 版本，当前打包目标为 Windows x64。
-
-### 发布包与更新
-
-`.github/workflows/release-win.yml` 在 GitHub Actions 的 `windows-latest` 上运行，使用 Node.js 22；它是手动触发的工作流。成功后生成 `CIKE-Setup-<版本号>-x64.exe`、`CIKE-<版本号>-win-x64.zip` 和 `SHA256SUMS.txt`。下载前请确认目标发布确实包含 Windows 资产；可在 PowerShell 用 `Get-FileHash <文件名> -Algorithm SHA256` 计算散列，并与 `SHA256SUMS.txt` 中对应条目比较。
-
-Windows 的应用内更新不是自动替换：检查到更新时会打开代码配置的 GitHub 发布页，提示手动下载 Windows ZIP、解压覆盖当前应用目录并重启。当前 `electron/updater.js` 将该发布源配置为 `chainfix/cike`；若使用本分支的构建产物，请从 [whowrong/cike 发布页](https://github.com/whowrong/cike/releases) 下载对应 ZIP。
-
-CI 工作流及其构建说明见 [`.github/workflows/release-win.yml`](.github/workflows/release-win.yml)、[`electron-builder.yml`](electron-builder.yml) 与 [`package.json`](package.json)。
-
+发布工作流见 [`.github/workflows/release-win.yml`](https://github.com/whowrong/cike/blob/windows-x64-support/.github/workflows/release-win.yml)，使用 GitHub Actions `windows-latest` 和 Node.js 22，手动触发后会上传安装程序、免安装 ZIP 和 `SHA256SUMS.txt`。
 ## 能力范围
 
 CIKE 提供独立会话、环境参数配置和 JavaScript 层面的指纹调整，未对 Chromium 内核进行定制。它不会修改 TLS/JA3 握手特征，也不保证通过所有指纹检测或实现完全匿名。
