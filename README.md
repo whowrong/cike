@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/chainfix/cike/releases/latest">下载 macOS 版</a> ·
+  <a href="#windows-x64">Windows x64</a> ·
   <a href="#软件预览">软件预览</a> ·
   <a href="#安装与首次打开">安装说明</a> ·
   <a href="https://github.com/chainfix/cike/issues">反馈问题</a>
@@ -101,6 +102,8 @@ CIKE 是基于 Electron、Chromium 和 Playwright 的本地多环境浏览器。
 
 ## 下载
 
+### macOS
+
 前往 **[最新版本发布页](https://github.com/chainfix/cike/releases/latest)** 下载 DMG 安装包，也可下载 `.dmg.tar.gz` 后解压取得同一磁盘映像。
 
 | 项目 | 当前支持情况 |
@@ -112,6 +115,16 @@ CIKE 是基于 Electron、Chromium 和 Playwright 的本地多环境浏览器。
 | 签名 | 免费临时签名（ad-hoc），未经过苹果公证 |
 
 发布流程会检查应用图标、应用签名和 DMG 完整性，并提供 `SHA256SUMS.txt` 供核对下载文件。
+
+### Windows x64
+
+此分支提供 Windows x64 构建配置。Windows 发布工作流需要在 GitHub Actions 中手动触发；只有工作流成功发布并附上相应文件后，发布页才会有 Windows 安装包。
+
+- [whowrong/cike 发布页](https://github.com/whowrong/cike/releases)：若该版本已附 Windows 资产，可下载 `CIKE-Setup-<版本号>-x64.exe`（向导安装）或 `CIKE-<版本号>-win-x64.zip`（免安装目录）。
+- 安装包默认按当前用户安装，可选择安装目录；会创建开始菜单和桌面快捷方式。卸载不会删除 CIKE 用户数据。
+- ZIP 版解压后运行 `CIKE.exe`。首次运行时在「设置」下载 Chromium 内核；这一步需要网络连接。
+- 发布包未做代码签名，Windows 可能显示 SmartScreen 提示。先从可信发布页下载并核对 `SHA256SUMS.txt`，确认文件可信后再选择「更多信息 → 仍要运行」；不要为此关闭系统安全检查。
+- 项目未在代码或发布工作流中声明最低 Windows 版本；当前构建目标为 Windows x64，不据此承诺特定最低版本。
 
 ## 安装与首次打开
 
@@ -152,7 +165,7 @@ socks5://用户名:密码@host:port
 
 ## 数据保存
 
-默认数据目录为 `~/.local-fingerprint-browser/`，可从设置页打开。通过环境变量 `LFB_DATA` 可以指定其他目录。
+默认数据目录为用户主目录下的 `.local-fingerprint-browser`（Windows 通常为 `%USERPROFILE%\.local-fingerprint-browser`），可从设置页打开。通过环境变量 `LFB_DATA` 可以指定其他目录。
 
 这里保存环境配置、代理配置、浏览器会话数据和本地 API 凭据。备份时建议先关闭所有浏览器环境并退出应用，再复制整个数据目录；删除该目录会丢失其中保存的数据。
 
@@ -222,32 +235,37 @@ npm start
 npm run smoke
 ```
 
-## 打包 Windows 版
+## Windows x64：运行、更新与打包
 
-Windows x64 支持两种产物（Electron 44）：
+### 从源码运行或打包
+
+需要 Windows x64 和 Node.js 22 或以上版本（这是源码构建要求，不是已打包应用的额外安装要求）。在 PowerShell 中进入项目目录后运行：
 
 ```powershell
 npm ci
-
-npm run pack:win-x64   # 免安装目录版 -> dist\CIKE-win32-x64\，双击 CIKE.exe
-npm run dist:win       # asar + NSIS 安装程序 -> dist-installer\CIKE-Setup-0.5.15-x64.exe
-npm run dist:win:dir   # 只出 asar 的免安装目录 -> dist-installer\win-unpacked\
+npm run electron       # 启动桌面应用
+npm run smoke          # 运行 smoke 测试
 ```
 
-安装程序（`electron-builder` 的 `nsis` target，配置在 `electron-builder.yml`）就是常见的向导式安装包：可选安装目录、建开始菜单快捷方式（桌面快捷方式在向导里勾选）、写入「应用和功能」的卸载项，默认装到 `%LOCALAPPDATA%\Programs\CIKE` 所以不弹 UAC；卸载会保留 `%USERPROFILE%\.local-fingerprint-browser` 里的环境和内核。支持静默安装：`CIKE-Setup-0.5.15-x64.exe /S /D=D:\CIKE`。
+首次使用浏览器环境前，在应用「设置」页下载 Chromium。下载需要网络；Windows x64 使用 Playwright 对应的 Chrome for Testing 内核。解压时程序依次尝试 `tar.exe`、`tar`、`unzip` 和 PowerShell `Expand-Archive`。
 
-`asar: true` 会把 `src/`、`electron/` 与生产依赖打成一个 `resources\app.asar`（约 18 MB），Electron 直接从中加载主进程与渲染进程代码；内核不在 asar 内，仍是设置页下载到用户目录的外部 Chromium。
+打包脚本：
 
-图标由 `electron/assets/icon.png` 生成：`python electron/assets/make-ico.py`（需要 Pillow），生成的 `electron/assets/icon.ico` 已随仓库提供。
+```powershell
+npm run pack:win-x64   # 目录包：dist\CIKE-win32-x64\CIKE.exe
+npm run dist:win       # NSIS 安装程序：dist-installer\CIKE-Setup-<package.json版本>-x64.exe
+npm run dist:win:dir   # NSIS 解包目录：dist-installer\win-unpacked\
+```
 
-Windows 版与 macOS 版的差异：
+安装程序使用向导，可更改安装目录，默认按当前用户安装；会创建开始菜单和桌面快捷方式。卸载会保留用户数据目录。安装包和免安装包都未签名。项目没有声明最低 Windows 版本，当前打包目标为 Windows x64。
 
-- 内核同样在设置页一次性下载（Playwright CDN 的 Chrome for Testing，约 200 MB），解压优先用系统自带的 `tar.exe`，缺失时回退到 `unzip` 或 PowerShell `Expand-Archive`；
-- 下载文件保存在系统「下载」文件夹；
-- 在线更新不做静默替换：点「下载并安装」会打开发布页，下载新版安装包覆盖安装即可；
-- 未做代码签名，首次运行可能出现 SmartScreen 提示，选择「更多信息 → 仍要运行」。
+### 发布包与更新
 
-`windows-latest` 上的自动化构建见 `.github/workflows/release-win.yml`（手动触发，产出 `CIKE-Setup-版本号-x64.exe`、`CIKE-版本号-win-x64.zip` 与 `SHA256SUMS.txt`）。
+`.github/workflows/release-win.yml` 在 GitHub Actions 的 `windows-latest` 上运行，使用 Node.js 22；它是手动触发的工作流。成功后生成 `CIKE-Setup-<版本号>-x64.exe`、`CIKE-<版本号>-win-x64.zip` 和 `SHA256SUMS.txt`。下载前请确认目标发布确实包含 Windows 资产；可在 PowerShell 用 `Get-FileHash <文件名> -Algorithm SHA256` 计算散列，并与 `SHA256SUMS.txt` 中对应条目比较。
+
+Windows 的应用内更新不是自动替换：检查到更新时会打开代码配置的 GitHub 发布页，提示手动下载 Windows ZIP、解压覆盖当前应用目录并重启。当前 `electron/updater.js` 将该发布源配置为 `chainfix/cike`；若使用本分支的构建产物，请从 [whowrong/cike 发布页](https://github.com/whowrong/cike/releases) 下载对应 ZIP。
+
+CI 工作流及其构建说明见 [`.github/workflows/release-win.yml`](.github/workflows/release-win.yml)、[`electron-builder.yml`](electron-builder.yml) 与 [`package.json`](package.json)。
 
 ## 能力范围
 
@@ -257,4 +275,4 @@ Canvas 噪声默认关闭，是否启用取决于实际用途；开启噪声并�
 
 ## 问题反馈
 
-请在 [Issues](https://github.com/chainfix/cike/issues) 中提供应用版本、macOS 版本、芯片型号、复现方式和报错截图。截图或日志中请遮盖 API Token、代理密码及个人信息。
+请在 [Issues](https://github.com/chainfix/cike/issues) 中提供应用版本、系统版本（Windows 请注明 x64）、芯片/处理器信息、复现方式和报错截图。Windows 版还请说明安装包类型（安装程序或 ZIP）；截图或日志中请遮盖 API Token、代理密码及个人信息。
