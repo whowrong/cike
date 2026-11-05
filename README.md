@@ -8,7 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/chainfix/cike/releases/latest">下载 macOS 版</a> ·
-  <a href="#windows-x64">Windows x64</a> ·
+  <a href="#windows-quick-start">Windows x64 快速开始</a> ·
   <a href="#软件预览">软件预览</a> ·
   <a href="#安装与首次打开">安装说明</a> ·
   <a href="https://github.com/chainfix/cike/issues">反馈问题</a>
@@ -17,6 +17,28 @@
 CIKE 是基于 Electron、Chromium 和 Playwright 的本地多环境浏览器。你可以为不同任务创建独立浏览器环境，分别保存登录状态、配置代理和浏览器参数，也可以通过本地 API 接入自动化脚本。
 
 环境配置和浏览器会话保存在本机，无需注册账号或连接厂商管理后台。浏览器访问网站、代理检测和内核下载仍需要相应的网络连接。
+
+<a id="windows-quick-start"></a>
+## Windows x64 快速开始
+
+**先说明下载现状：**本说明对应 `windows-x64-support` 分支当前的 0.5.15 源码，不等于 `main` 上更新的 macOS 版本。截至 2026-11-05，[Windows Releases 页面](https://github.com/whowrong/cike/releases)没有可下载的 Windows 安装包或 ZIP；[Windows 发布工作流](https://github.com/whowrong/cike/actions/workflows/release-win.yml)在 GitHub Actions 中也显示该 workflow 不存在。因此现在不能直接下载已编译的 Windows 版。可以[下载此分支源码 ZIP](https://github.com/whowrong/cike/archive/refs/heads/windows-x64-support.zip)，或按下方命令克隆；这两种都是源码，不是安装包。
+
+1. 安装 [Git for Windows](https://git-scm.com/download/win) 和 [Node.js 22 x64](https://nodejs.org/en/download)。
+2. 打开 PowerShell，运行以下命令；成功后启动源码版应用：
+
+   ```powershell
+   git clone --branch windows-x64-support https://github.com/whowrong/cike.git
+   cd cike
+   npm ci
+   npm run electron
+   ```
+
+3. 首次使用，在应用「设置 → 浏览器内核」点「下载 Chromium」（约 170 MB，仅需下载一次）。代理不是必需的；需要代理时，在「代理管理 → 添加代理」按下方格式输入并检测。
+4. 到「新建环境」创建环境：Windows 电脑上默认选中 Windows，按需选择分组、分辨率和代理；语言/时区选「自动」会尝试依据已检测代理或当前网络设置，探测失败时使用 `en-US` / `America/New_York`。点「创建并打开」，即可像普通 Chromium 一样访问网站。以后在「浏览器管理」打开同一环境，会保留该环境的登录态和站点数据；不同环境的数据彼此独立。
+
+如果需要安装程序而非从源码启动，在上面的 PowerShell 目录中运行 `npm run dist:win`，完成后运行 `.\dist-installer\CIKE-Setup-0.5.15-x64.exe`。这是本机打包，不等于已发布或已在 Windows 实机验证的安装包。以下步骤尚未在 Windows 实机独立运行验收。数据目录默认为 `%USERPROFILE%\.local-fingerprint-browser`；卸载程序会保留数据，清除数据需备份后手动删除此目录。
+
+若之后发布了 Windows 资产，请从 [whowrong/cike Releases](https://github.com/whowrong/cike/releases) 下载 `CIKE-Setup-<版本号>-x64.exe`（安装版）或 `CIKE-<版本号>-win-x64.zip`（免安装版）；压缩包内运行 `CIKE-win32-x64\CIKE.exe`。只从该 fork 的发布页取安装包，不要把 Source code ZIP 当安装包。源码构建命令和更新/卸载细节见下方「Windows x64：安装、配置与使用」。
 
 ## 功能特点
 
@@ -120,7 +142,7 @@ CIKE 是基于 Electron、Chromium 和 Playwright 的本地多环境浏览器。
 
 当前 Windows 目标为 x64。要下载已打包程序，打开 [whowrong/cike Releases](https://github.com/whowrong/cike/releases)，进入最新版本的 **Assets**，选 `CIKE-Setup-<版本号>-x64.exe`（安装版）或 `CIKE-<版本号>-win-x64.zip`（免安装版）。GitHub 页面上的「Source code (zip/tar.gz)」是源代码，不是可直接运行的安装包。若 Releases 尚无 Windows 资产，就暂时没有现成安装包可下载；可按下方「Windows x64：源码运行与打包」用 Node.js 22+ 在 Windows 本机打包，或等维护者发布。不要从上游 macOS 发布页下载。
 
-有仓库写入权限且 Actions 中列出该工作流时，可打开 [Windows 发布工作流文件](https://github.com/whowrong/cike/blob/windows-x64-support/.github/workflows/release-win.yml)，然后在仓库的 **Actions → Build and Release Windows x64 → Run workflow** 选择 `windows-x64-support` 分支，版本号可用默认 `0.5.15` 并运行。工作流成功后会创建 GitHub Release；再回到上面的 Releases 页面，从该版本的 Assets 下载：
+该分支中有 Windows 发布工作流文件，但截至 2026-11-05，GitHub 的 [Actions 页面](https://github.com/whowrong/cike/actions/workflows/release-win.yml)显示「This workflow does not exist」，当前 Releases 页面也没有发布资产，所以暂时无法通过 Actions 生成并下载它。只有当 GitHub Actions 页面实际列出 **Build and Release Windows x64** 后，维护者才可从 **Actions → Build and Release Windows x64 → Run workflow** 选择 `windows-x64-support` 分支并启动；成功后，才会有以下资产：
 
 - `CIKE-Setup-<版本号>-x64.exe`：推荐，向导式安装；可以选择安装目录，默认按当前用户安装，并创建开始菜单/桌面快捷方式。
 - `CIKE-<版本号>-win-x64.zip`：免安装包；解压后进入 `CIKE-win32-x64` 文件夹，再运行其中的 `CIKE.exe`。
@@ -148,7 +170,7 @@ Get-FileHash .\CIKE-Setup-0.5.15-x64.exe -Algorithm SHA256
 
 1. 代理不是必填项：直连使用时跳过这一步。需要代理时，在「代理管理」点「添加代理」，逐行导入（每行一个），支持 `host:port`、`host:port:用户名:密码` 或 `socks5://用户名:密码@host:port`；可在行尾用 `{备注}` 命名，然后检测代理。
 2. 打开「新建环境」。Windows 版默认选择 Windows；设置分组、分辨率，需要代理时选择刚添加并检测通过的代理。
-3. 语言和时区默认跟随已检测代理；也可在表单里手动选。CPU 核数、内存、Canvas 噪声、WebRTC 和随机种子均可按需要调整，留空/默认即可采用程序默认值。
+3. 语言和时区选「自动」时，会优先使用已检测代理的地区信息；没有可用代理地区信息时，会尝试根据当前网络判断，失败后回退到 `en-US` 和 `America/New_York`。也可在表单手动选择。CPU 核数、内存、Canvas 噪声、WebRTC 和随机种子均可按需要调整，初次使用建议保留默认值。
 4. 点「创建并打开」。之后在「环境管理」中可打开已保存的环境；每个环境保留自己的登录状态和浏览数据。
 
 不使用代理也能创建环境。创建并打开后，可像普通 Chromium 浏览器一样在地址栏访问网站并登录；以后从「环境管理」重新打开同一环境，会保留该环境的 Cookie 和浏览数据。代理检测失败时，语言和时区可能无法自动跟随代理；请核对代理设置，或手动选择语言及时区。
